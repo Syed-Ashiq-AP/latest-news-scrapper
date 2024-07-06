@@ -1,45 +1,63 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>WP Post Feed</title>
-
-<!--Inline styles you will likely throw away-->
-  <style>
-    .item .thumb{
-      background-size: cover;
-      width: 60px;
-      height: 60px;
-      float: left;
-      margin-right: 10px;
-      border-radius: 50%;
-    }
-    .item .date{color:#888;}
-
-    .more{margin-top:20px;}
-  </style>
-
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JPWS</title>
 </head>
-<!--Copy the stuff between the body tags and add it to your webpage-->
 <body>
+    <label for="name">Date:</label>
+    <input onchange="log(this.value)" type="date" id="date" name="date">
+    <input type="text" placeholder="Search" oninput="filter(this.value)">
+    <div id="data">
 
-<div id="post_feed">
-  <div class="loading" v-show="loading">loading...</div><!--You will probably want to just remove this line-->
-
-  <div class="item" v-for="item in items | more showed">
-    <div class="thumb" v-thumb="item.featured_media" v-show="item.featured_media"></div>
-
-    <a href="{{item.link}}" target="_blank" class="title">{{item.title.rendered}}</a>
-    <div class="date">{{item.date | formatDate}}</div>
-    <div class="desc">{{{item.excerpt.rendered | removeMoreLink}}}</div>
-  </div>
-
-  <button class="more" @click="showMore" v-show="items.length > showed">show more</button>
-
-</div>
-
-<script src="vue.min.js"></script>
-<script src="vue-resource.min.js"></script>
-<script src="script.js"></script>
+    </div>
 </body>
+
+<script>
+    date = new Date().toISOString().split('T')[0];
+    data=null
+    async function log(d="") {
+        document.getElementById("data").innerHTML = "";
+        if (d != "") {
+            date = d;
+        }
+        const response = await fetch("https://jpws.azurewebsites.net/api/JSP?code=I9KDY7uEGaYJw95V1C8Z_EyQ5DrYudwrOR0Z_G-FHZV3AzFuMNN64Q%3D%3D&date="+date,{mode: 'no-cors'});
+        data = await response.json();
+
+        console.log(date);
+        try{
+        data.forEach(element => {
+            
+            let div = document.createElement("div");
+            div.innerHTML ="<br><br><p>title: </p>"+ element["title"]+"<br><p>Origin: </p>"+element["server"]+"<br><p>Link: </p><a href='"+element["link"]+"'>"+element["link"]+"</a><br>";
+            document.getElementById("data").appendChild(div);
+        
+        });
+        }catch(e){
+            console.log(e);
+            document.getElementById("data").innerHTML = "No Data";
+        }
+    }
+
+    log()
+
+    function filter(value){
+        document.getElementById("data").innerHTML = "";
+        try {
+            data.forEach(element => {
+                if (element["title"].includes(value)) {
+                    let div = document.createElement("div");
+                    div.innerHTML = "<br><br><p>title: </p>" + element["title"] + "<br><p>Origin: </p>" + element["server"] + "<br><p>Link: </p><a href='" + element["link"] + "'>" + element["link"] + "</a><br>";
+                    document.getElementById("data").appendChild(div);
+
+                }
+            });
+        } catch (e) {
+            console.log(e);
+            document.getElementById("data").innerHTML = "No Data";
+        }
+    }
+
+</script>
 </html>
